@@ -47,6 +47,6 @@ def video_to_frames(input_loc, output_loc):
 
 if __name__=="__main__":
 
-    input_loc = 'videos\People_Walking_In_The_Mall_pz11_2046.mp4'
-    output_loc = 'images\\mall\\'
+    input_loc = 'C:\\Users\\benra\\Documents\\Academics\\fall 22\\374\\374-Final-Project\\vid\\depositphotos_63798443-stock-video-people-crossing-the-street.mp4'
+    output_loc = 'images\\low-res\\'
     video_to_frames(input_loc, output_loc)
