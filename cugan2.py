@@ -14,7 +14,7 @@ from torch.nn import Module, Sequential, Conv2d, ConvTranspose2d, LeakyReLU, Bat
 
  # dir_data is the name of the folder where the images are stored. 
 def process_data(dir_data):
-
+    #
     img_shape = (64,64, 3)
     nm_imgs   = np.sort(os.listdir(dir_data))
     print(nm_imgs)
@@ -278,7 +278,7 @@ def main():
     
     dev = 'cuda' if torch.cuda.is_available() == True else 'cpu'
     device = torch.device(dev)
-    process_data('TREEDATA')
+    process_data('images/protest')
     imgs = np.load('images_64x64.npz')
     
     #test_data(imgs)
