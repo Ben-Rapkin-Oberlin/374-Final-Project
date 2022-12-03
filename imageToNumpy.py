@@ -20,15 +20,23 @@ onlyfiles = [dir+'\\'+f for f in listdir(dir) if isfile(join(dir, f))]
 # 3840 x 2160 x 3 x 3 = 74,649,600
 # 720 x 1280 x 3 x 3= 2,764,800
 # 480 x 640 x 3 x 3= 691,200
-
+print(onlyfiles[0])
+exit()
 
 all_images = []
 count=0
+a=np.asarray(Image.open(onlyfiles[0]))
+print(a.shape)
+a=a.flatten()
+print(a.shape)
+
+exit()
 for file in onlyfiles:
     all_images=[np.asarray(Image.open(onlyfiles[x])) for x in range(10)]
     all_images=np.array(all_images)
     all_images=np.array([x.flatten() for x in all_images])
     print(all_images.shape)
+
     np.savetxt('data' +str(count)+'.csv', all_images, delimiter=',')
     count+=1
     print(count)

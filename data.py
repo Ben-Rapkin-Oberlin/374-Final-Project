@@ -46,6 +46,7 @@ class CactiDataset(Dataset):
         return image, label
 
 
+#no validation or test phase for gan
 
 
 train_transform = transforms.Compose([transforms.ToPILImage(),
