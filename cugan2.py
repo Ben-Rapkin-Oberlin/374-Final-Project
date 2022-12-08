@@ -15,7 +15,7 @@ from torch.nn import Module, Sequential, Conv2d, ConvTranspose2d, LeakyReLU, Bat
  # dir_data is the name of the folder where the images are stored. 
 def process_data(dir_data):
     #
-    img_shape = (64,64, 3)
+    img_shape = (256,256, 3)
     nm_imgs   = np.sort(os.listdir(dir_data))
     print(nm_imgs)
     X_train = []
@@ -25,7 +25,7 @@ def process_data(dir_data):
         try:
             img = Image.open(dir_data+'/'+file)
             img = img.convert('RGB')
-            img = img.resize((64,64))
+            img = img.resize((256,256))
             img = np.asarray(img)/255
             X_train.append(img)
         except:
@@ -35,10 +35,10 @@ def process_data(dir_data):
     print (X_train.shape)
 
     #save the processed data
-    savez_compressed('images_64x64.npz', X_train)
+    savez_compressed('images_256x256.npz', X_train)
 
     # load dict of arrays
-    dict_data = np.load('images_64x64.npz')
+    dict_data = np.load('images_256x256.npz')
     
     # extract the first array
     data = dict_data['arr_0']
@@ -87,13 +87,19 @@ class Generator(Module):
         nz = 100
         ngf = 64
         self.gen = Sequential(
-            # ConvTranspose2d(in_channels = 100, out_channels =  ngf * 16 , kernel_size = 4, stride = 1, padding = 0, bias = False),
+
+            ConvTranspose2d(in_channels = 100, out_channels =  ngf * 32 , kernel_size = 4, stride = 1, padding = 0, bias = False),
             # # the output from the above will be b_size ,512, 4,4
-            # BatchNorm2d(num_features = ngf * 16), # From an input of size (b_size, C, H, W), pick num_features = C
-            # LeakyReLU(inplace = True),
+            BatchNorm2d(num_features = ngf * 32), # From an input of size (b_size, C, H, W), pick num_features = C
+            LeakyReLU(inplace = True),
+
+            ConvTranspose2d(in_channels = ngf * 32, out_channels =  ngf * 16 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            # # the output from the above will be b_size ,512, 4,4
+            BatchNorm2d(num_features = ngf * 16), # From an input of size (b_size, C, H, W), pick num_features = C
+            LeakyReLU(inplace = True),
 
 
-            ConvTranspose2d(in_channels = 100, out_channels =  ngf * 8 , kernel_size = 4, stride = 1, padding = 0, bias = False),
+            ConvTranspose2d(in_channels = ngf * 16, out_channels =  ngf * 8 , kernel_size = 4, stride = 2, padding = 1, bias = False),
             # the output from the above will be b_size ,512, 4,4
             BatchNorm2d(num_features = ngf * 8), # From an input of size (b_size, C, H, W), pick num_features = C
             LeakyReLU(inplace = True),
@@ -155,12 +161,15 @@ class Discriminator(Module):
             BatchNorm2d(w * 8),
             LeakyReLU(0.2, inplace=True),
  
-            Conv2d(in_channels = w*8, out_channels = 1, kernel_size = 4, stride = 1, padding = 0, bias=False),
-            # BatchNorm2d(w * 16),
-            # LeakyReLU(0.2, inplace=True),
+            Conv2d(in_channels = w*8, out_channels = w * 16, kernel_size = 4, stride = 2, padding = 1, bias=False),
+            BatchNorm2d(w * 16),
+            LeakyReLU(0.2, inplace=True),
 
-            # Conv2d(in_channels = w*16, out_channels =1, kernel_size = 4, stride = 1, padding = 0, bias=False),
+            Conv2d(in_channels = w*16, out_channels = w*32, kernel_size = 4, stride = 2, padding = 1, bias=False),
+            BatchNorm2d(w * 32),
+            LeakyReLU(0.2, inplace=True),
 
+            Conv2d(in_channels = w*32, out_channels = 1, kernel_size = 4, stride = 1, padding = 0, bias=False),
             # ouput from above layer is b_size, 1, 1, 1
             Sigmoid()
         )
@@ -179,7 +188,7 @@ def init_weights(m):
 
 
 def train(imgs,device,epochs,gen_epochs):
-    transpose_imgs = np.transpose(np.float32(imgs['arr_0']), (0, 3,1,2)) #re-structure the data
+    transpose_imgs = np.transpose(np.float32(imgs['arr_0']), (0, 3, 1, 2)) #re-structure the data
  
     dset = data_set(transpose_imgs) # passing the npz variable to the constructor class
     batch_size = 32
@@ -279,7 +288,7 @@ def main():
     dev = 'cuda' if torch.cuda.is_available() == True else 'cpu'
     device = torch.device(dev)
     process_data('images/protest')
-    imgs = np.load('images_64x64.npz')
+    imgs = np.load('images_256x256.npz')
     
     #test_data(imgs)
     epochs = 1000
