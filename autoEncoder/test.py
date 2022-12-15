@@ -7,10 +7,22 @@ import tensorflow_datasets as tfds
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-data = tfds.load('horses_or_humans', split='train', as_supervised=True)
-data=data.map(lambda x,y: (tf.image.resize(x, (256,256)), y))
+data = tfds.load('horses_or_humans',split=['train'], as_supervised=True)
+print(type(data))
+small=data.map(lambda x,y: (tf.image.resize(x, (256,256)), y))
+big=data.map(lambda x,y: (tf.image.resize(x, (512,512)), y))
+
+
+train=tfds.as_numpy(small)
+print("##############\n")
+print(type(train))
+#print(train.shape)
+
+test=tfds.as_numpy(big)
+
+
 #data= tfds.load('fashion_mnist', split='train', as_supervised=True)
-data = data.shuffle(100).batch(10)
+
 """
 model = tf.keras.models.Sequential([
     tf.keras.layers.Resizing(
@@ -79,12 +91,16 @@ auto_encoder.compile(optimizer='adadelta', loss='mean_squared_error',metrics=['a
 
 #get data
 #tf.config.experimental_run_functions_eagerly(True)
-auto_encoder.summary()
+#auto_encoder.summary()
 
 #train model
-auto_encoder.fit(data,
-#        data,
+
+
+
+auto_encoder.fit(train,
+        test,
         epochs=4,
-        batch_size=10,
+        batch_size=1,
         shuffle=True,
+
         )
