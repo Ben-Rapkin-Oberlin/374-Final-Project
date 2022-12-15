@@ -11,6 +11,11 @@ from torch.optim import *
 from PIL import Image
 import numpy as np
 
+# TODO Add labels for discriminator
+# Look at cugan2.py line 235
+
+# TODO Add this dataload to cugan2.py
+# Look at cugan2.py line 197 
 
 class MyDataset(torch.utils.data.Dataset):
     def __init__(self,path):
