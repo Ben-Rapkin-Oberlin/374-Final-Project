@@ -115,7 +115,7 @@ class Generator(Module):
             BatchNorm2d(num_features = ngf),
             LeakyReLU(inplace = True),
 
-            ConvTranspose2d(in_channels = ngf, out_channels = 6 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            ConvTranspose2d(in_channels = ngf, out_channels = 3 , kernel_size = 4, stride = 2, padding = 1, bias = False),
             Tanh()
         )
  
@@ -132,7 +132,7 @@ class Discriminator(Module):
         self.dis = Sequential(
  
             # input is (3, 32, 32)
-            Conv2d(in_channels = 6, out_channels = w, kernel_size = 4, stride = 2, padding = 1, bias=False),
+            Conv2d(in_channels = 3, out_channels = w, kernel_size = 4, stride = 2, padding = 1, bias=False),
             # ouput from above layer is b_size, 32, 16, 16
             LeakyReLU(0.2, inplace=True),
  
@@ -188,9 +188,8 @@ def train(imgs,device,epochs,gen_epochs,path):
     shuffle = True
     
     #dataloader = DataLoader(dataset = dset, batch_size = 1, shuffle = shuffle)
-    dataloader = lazyload.make_dataset(path, workers=1, batch_size = 4)
+    dataloader = lazyload.make_dataset(path, workers=1, batch_size = 1)
     
-    print(dataloader)
     netG = Generator().to(device)
     netD = Discriminator().to(device)
     # initializing the weights
@@ -207,7 +206,9 @@ def train(imgs,device,epochs,gen_epochs,path):
 
         for i, b in enumerate(dataloader):
             # Loss on real images
-            print(b.shape)
+            #print(b.shape)
+            label=b[1]
+            attribute = b[0]
             #b = torch.transpose(b,(2,0,1))
             # stack_img = torch.cat((b[0],b[2]),0)
             # ground_truth = b[1]
@@ -215,10 +216,10 @@ def train(imgs,device,epochs,gen_epochs,path):
             opt_D.zero_grad() # set the gradients to 0 at start of each loop because gradients are accumulated on subsequent backward passes
             # compute the D model output
             
-            #yhat = netD(ground_truth.to(device)).view(-1)
-            yhat = netD(b.to(device)).view(-1) # view(-1) reshapes a 4-d tensor of shape (2,1,1,1) to 1-d tensor with 2 values only
+            yhat = netD(label.to(device)).view(-1)
+            #yhat = netD(b.to(device)).view(-1) # view(-1) reshapes a 4-d tensor of shape (2,1,1,1) to 1-d tensor with 2 values only
             # specify target labels or true labels
-            target = torch.ones(len(b), dtype=torch.float, device=device)
+            target = torch.ones(len(b[0]), dtype=torch.float, device=device)
             # calculate loss
             
             loss_real = loss(yhat, target)
@@ -229,17 +230,17 @@ def train(imgs,device,epochs,gen_epochs,path):
     
             # generate batch of fake images using G
             # Step1: creating noise to be fed as input to G
-            #G_input = stack_image
-            noise = torch.randn(len(b), 100, 1, 1, device = device)
+            #G_input = attribute
+            noise = torch.randn(len(b[0]), 100, 1, 1, device = device)
             # Step 2: feed noise to G to create a fake img (this will be reused when updating G)
-            #fake_img = netG(noise) 
-            fake_img = netG(noise)
+            fake_img = netG(noise) 
+            #fake_img = netG(G_input.to(device))
     
             # compute D model output on fake images
             yhat = netD.cuda()(fake_img.detach()).view(-1) 
             
             # specify target labels
-            target = torch.zeros(len(b), dtype=torch.float, device=device)
+            target = torch.zeros(len(b[0]), dtype=torch.float, device=device)
             # calculate loss
             loss_fake = loss(yhat, target)
             # calculate gradients
@@ -260,7 +261,7 @@ def train(imgs,device,epochs,gen_epochs,path):
             # pass fake image through D
             yhat = netD.cuda()(fake_img).view(-1)
             # specify target variables - remember G wants D *to think* these are real images so label is 1
-            target = torch.ones(len(b), dtype=torch.float, device=device)
+            target = torch.ones(len(b[0]), dtype=torch.float, device=device)
             # calculate loss
             loss_gen = loss(yhat, target)
             # calculate gradients

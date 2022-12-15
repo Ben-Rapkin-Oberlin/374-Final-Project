@@ -27,7 +27,7 @@ class MyDataset(torch.utils.data.Dataset):
         #start from 1 because we need to compare the current frame with the previous frame
         #end at len(temp)-1 because we don't have label for the last frame
         for i in range(1,len(self.temp)-1):
-            self.data_files.append([self.temp[i-1],self.temp[i]])
+            self.data_files.append([self.temp[i-1],self.temp[i],self.temp[i+1]])
         
         #make labels as next frame
         self.labels = self.temp[2:]
@@ -38,6 +38,7 @@ class MyDataset(torch.utils.data.Dataset):
         #paths are stored in data_files, so use idx to get the path
         path1=self.data_files[idx][0]
         path2=self.data_files[idx][1]
+        path3=self.data_files[idx][2]
 
         img1 = Image.open(self.path+'/'+path1)
         img1 = img1.convert('RGB')
@@ -55,8 +56,13 @@ class MyDataset(torch.utils.data.Dataset):
 
         instance = torch.cat((torch.tensor(img1),torch.tensor(img2)),0)
         
+        img3 = Image.open(self.path+'/'+path3)
+        img3 = img3.convert('RGB')
+        img3 = img3.resize((256,256))
+        img3 = np.asarray(img3)/255
+        img3 = np.transpose(np.float32(img3), (2,0,1))
 
-
+        label = torch.tensor(img3)
 
         #make a 4d tensor
         #([2,x,y,3]) 2 for 2 frames, x,y for the size of the image, 3 for RGB
