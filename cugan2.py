@@ -10,7 +10,8 @@ from numpy import savez_compressed
 from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 from torch.nn import Module, Sequential, Conv2d, ConvTranspose2d, LeakyReLU, BatchNorm2d, ReLU, Tanh, Sigmoid, BCELoss 
- 
+
+import lazyload
 
  # dir_data is the name of the folder where the images are stored. 
 def process_data(dir_data):
@@ -27,6 +28,7 @@ def process_data(dir_data):
             img = img.convert('RGB')
             img = img.resize((256,256))
             img = np.asarray(img)/255
+            
             X_train.append(img)
         except:
             print("something went wrong")
@@ -35,10 +37,11 @@ def process_data(dir_data):
     print (X_train.shape)
 
     #save the processed data
-    savez_compressed('images_256x256.npz', X_train)
-
+    savez_compressed('data_256x256.npz', X_train)
+    print("X_train")
+    print(X_train[0])
     # load dict of arrays
-    dict_data = np.load('images_256x256.npz')
+    dict_data = np.load('data_256x256.npz')
     
     # extract the first array
     data = dict_data['arr_0']
@@ -65,6 +68,7 @@ class data_set(Dataset):
  
     def __init__(self, npz_imgs):
         self.imgs = npz_imgs
+
  
     def __len__(self):
         return len(self.imgs)
@@ -78,54 +82,41 @@ class data_set(Dataset):
         return image
 
 
-#generator class, now 64x64. if 128x128, the structure needs to be changed 
+#generator class, now 256x256
 class Generator(Module):
     def __init__(self):
  
-        # calling constructor of parent class
         super().__init__()
         nz = 100
         ngf = 64
         self.gen = Sequential(
-
+            #in_channels was 100
             ConvTranspose2d(in_channels = 100, out_channels =  ngf * 32 , kernel_size = 4, stride = 1, padding = 0, bias = False),
-            # # the output from the above will be b_size ,512, 4,4
-            BatchNorm2d(num_features = ngf * 32), # From an input of size (b_size, C, H, W), pick num_features = C
+            BatchNorm2d(num_features = ngf * 32),
             LeakyReLU(inplace = True),
 
-            ConvTranspose2d(in_channels = ngf * 32, out_channels =  ngf * 16 , kernel_size = 4, stride = 2, padding = 1, bias = False),
-            # # the output from the above will be b_size ,512, 4,4
-            BatchNorm2d(num_features = ngf * 16), # From an input of size (b_size, C, H, W), pick num_features = C
+            ConvTranspose2d(in_channels = ngf * 32, out_channels =  ngf * 16 , kernel_size = 4, stride = 2, padding = 1, bias = False),    
+            BatchNorm2d(num_features = ngf * 16), 
             LeakyReLU(inplace = True),
-
 
             ConvTranspose2d(in_channels = ngf * 16, out_channels =  ngf * 8 , kernel_size = 4, stride = 2, padding = 1, bias = False),
-            # the output from the above will be b_size ,512, 4,4
-            BatchNorm2d(num_features = ngf * 8), # From an input of size (b_size, C, H, W), pick num_features = C
+            BatchNorm2d(num_features = ngf * 8), 
             LeakyReLU(inplace = True),
             
-            
-            
             ConvTranspose2d(in_channels = ngf * 8, out_channels =  ngf * 4 , kernel_size = 4, stride = 2, padding = 1, bias = False),
-            # the output from the above will be b_size ,256, 8,8
             BatchNorm2d(num_features =  ngf * 4),
             LeakyReLU(inplace = True),
 
             ConvTranspose2d(in_channels =  ngf * 4, out_channels =  ngf * 2 , kernel_size = 4, stride = 2, padding = 1, bias = False),
-            # the output from the above will be b_size ,128, 16,16
             BatchNorm2d(num_features = ngf * 2),
             LeakyReLU(inplace = True),
 
             ConvTranspose2d(in_channels =  ngf * 2, out_channels =  ngf , kernel_size = 4, stride = 2, padding = 1, bias = False),
-            # the output from the above will be b_size ,128, 16,16
             BatchNorm2d(num_features = ngf),
             LeakyReLU(inplace = True),
 
- 
-            ConvTranspose2d(in_channels = ngf, out_channels = 3 , kernel_size = 4, stride = 2, padding = 1, bias = False),
-            # the output from the above will be b_size ,3, 32,32
+            ConvTranspose2d(in_channels = ngf, out_channels = 6 , kernel_size = 4, stride = 2, padding = 1, bias = False),
             Tanh()
-         
         )
  
     def forward(self, input):
@@ -141,7 +132,7 @@ class Discriminator(Module):
         self.dis = Sequential(
  
             # input is (3, 32, 32)
-            Conv2d(in_channels = 3, out_channels = w, kernel_size = 4, stride = 2, padding = 1, bias=False),
+            Conv2d(in_channels = 6, out_channels = w, kernel_size = 4, stride = 2, padding = 1, bias=False),
             # ouput from above layer is b_size, 32, 16, 16
             LeakyReLU(0.2, inplace=True),
  
@@ -187,15 +178,19 @@ def init_weights(m):
 
 
 
-def train(imgs,device,epochs,gen_epochs):
-    transpose_imgs = np.transpose(np.float32(imgs['arr_0']), (0, 3, 1, 2)) #re-structure the data
+def train(imgs,device,epochs,gen_epochs,path):
+    
+    
+    #transpose_imgs = np.transpose(np.float32(imgs['arr_0']), (0, 3, 1, 2)) #re-structure the data
  
-    dset = data_set(transpose_imgs) # passing the npz variable to the constructor class
-    batch_size = 32
+    #dset = lazyload.MyDataset(transpose_imgs) # passing the npz variable to the constructor class
+    #batch_size = 3
     shuffle = True
     
-    dataloader = DataLoader(dataset = dset, batch_size = batch_size, shuffle = shuffle)
+    #dataloader = DataLoader(dataset = dset, batch_size = 1, shuffle = shuffle)
+    dataloader = lazyload.make_dataset(path, workers=1, batch_size = 4)
     
+    print(dataloader)
     netG = Generator().to(device)
     netD = Discriminator().to(device)
     # initializing the weights
@@ -209,13 +204,18 @@ def train(imgs,device,epochs,gen_epochs):
 
 
     for epoch in range(epochs):
+
         for i, b in enumerate(dataloader):
             # Loss on real images
-
+            print(b.shape)
+            #b = torch.transpose(b,(2,0,1))
+            # stack_img = torch.cat((b[0],b[2]),0)
+            # ground_truth = b[1]
             # clear the gradient
             opt_D.zero_grad() # set the gradients to 0 at start of each loop because gradients are accumulated on subsequent backward passes
             # compute the D model output
             
+            #yhat = netD(ground_truth.to(device)).view(-1)
             yhat = netD(b.to(device)).view(-1) # view(-1) reshapes a 4-d tensor of shape (2,1,1,1) to 1-d tensor with 2 values only
             # specify target labels or true labels
             target = torch.ones(len(b), dtype=torch.float, device=device)
@@ -229,12 +229,14 @@ def train(imgs,device,epochs,gen_epochs):
     
             # generate batch of fake images using G
             # Step1: creating noise to be fed as input to G
+            #G_input = stack_image
             noise = torch.randn(len(b), 100, 1, 1, device = device)
             # Step 2: feed noise to G to create a fake img (this will be reused when updating G)
-            fake_img = netG(noise) 
+            #fake_img = netG(noise) 
+            fake_img = netG(noise)
     
             # compute D model output on fake images
-            yhat = netD.cuda()(fake_img.detach()).view(-1) # .cuda() is essential because our input i.e. fake_img is on gpu but model isnt (runtimeError thrown); detach is imp: Basically, only track steps on your generator optimizer when training the generator, NOT the discriminator. 
+            yhat = netD.cuda()(fake_img.detach()).view(-1) 
             
             # specify target labels
             target = torch.zeros(len(b), dtype=torch.float, device=device)
@@ -277,7 +279,7 @@ def train(imgs,device,epochs,gen_epochs):
                 
                 #print("********************")
                 print(" Epoch %d and iteration %d dloss= %f gloss= %f " % (epoch, i,loss_disc, loss_gen))
-        if epoch % 500 == 0:
+        if epoch % 50 == 0:
             img_plot = np.transpose(fake_img.detach().cpu(), (0,2,3,1)) # .detach().cpu() is imp for copying fake_img tensor to host memory first
             plot_images(img_plot,index=epoch)
 
@@ -287,12 +289,12 @@ def main():
     
     dev = 'cuda' if torch.cuda.is_available() == True else 'cpu'
     device = torch.device(dev)
-    process_data('images/protest')
-    imgs = np.load('images_256x256.npz')
+    #process_data('images/low-res_mini')
+    imgs = np.load('data_256x256.npz')
     
     #test_data(imgs)
     epochs = 1000
-
-    train(imgs, device, epochs, 1500)
+    path = 'images/low-res_mini'
+    train(imgs, device, epochs, 1500, path)
     
 main()
