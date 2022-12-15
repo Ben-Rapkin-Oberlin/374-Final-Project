@@ -92,42 +92,42 @@ class Generator(Module):
 
         self.gen = Sequential(
             
-            ConvTranspose2d(in_channels = 6, out_channels =  ngf, kernel_size = 4, stride = 2, padding = 1, bias = False),
+            Conv2d(in_channels = 6, out_channels =  ngf, kernel_size = 4, stride = 2, padding = 1, bias = False),
             BatchNorm2d(num_features = ngf),
             LeakyReLU(inplace = True),
 
-            ConvTranspose2d(in_channels = ngf, out_channels =  ngf * 2 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            Conv2d(in_channels = ngf, out_channels =  ngf * 2 , kernel_size = 4, stride = 2, padding = 1, bias = False),
             BatchNorm2d(num_features = ngf * 2),
             LeakyReLU(inplace = True),
 
-            ConvTranspose2d(in_channels = ngf * 2, out_channels =  ngf * 4 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            Conv2d(in_channels = ngf * 2, out_channels =  ngf * 4 , kernel_size = 4, stride = 2, padding = 1, bias = False),
             BatchNorm2d(num_features = ngf * 4),
             LeakyReLU(inplace = True),
 
-            ConvTranspose2d(in_channels = ngf * 4, out_channels =  ngf * 8 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            Conv2d(in_channels = ngf * 4, out_channels =  ngf * 8 , kernel_size = 4, stride = 2, padding = 1, bias = False),
             BatchNorm2d(num_features = ngf * 8),
             LeakyReLU(inplace = True),
             
-            ConvTranspose2d(in_channels = ngf * 8, out_channels =  ngf * 16 , kernel_size = 4, stride = 2, padding = 1, bias = False),
-            BatchNorm2d(num_features = ngf * 16),
+            Conv2d(in_channels = ngf * 8, out_channels =  1 , kernel_size = 4, stride = 1, padding = 0, bias = False),
+            #BatchNorm2d(num_features = ngf * 16),
             LeakyReLU(inplace = True),
 
-            # ConvTranspose2d(in_channels = ngf * 16, out_channels =  ngf * 32 , kernel_size = 4, stride = 1, padding = 0, bias = False),
-            # BatchNorm2d(num_features = ngf * 32),
+            # Conv2d(in_channels = ngf * 16, out_channels =  1 , kernel_size = 4, stride = 1, padding = 0, bias = False),
+            # #BatchNorm2d(num_features = ngf * 32),
             # LeakyReLU(inplace = True),
 
-            ConvTranspose2d(in_channels = ngf*16, out_channels = 1, kernel_size = 4, stride = 1, padding = 0, bias=False),
-            LeakyReLU(inplace = True),
+            # ConvTranspose2d(in_channels = ngf*16, out_channels = 1, kernel_size = 4, stride = 1, padding = 0, bias=False),
+            # LeakyReLU(inplace = True),
 
-            ConvTranspose2d(in_channels = 1, out_channels =  ngf * 16 , kernel_size = 4, stride = 1, padding = 0, bias = False),    
-            BatchNorm2d(num_features = ngf * 16), 
-            ReLU(inplace = True),
+            # Conv2d(in_channels = 1, out_channels =  ngf * 16 , kernel_size = 4, stride = 1, padding = 0, bias = False),    
+            # BatchNorm2d(num_features = ngf * 16), 
+            # ReLU(inplace = True),
             
             # ConvTranspose2d(in_channels = ngf *32, out_channels =  ngf * 16 , kernel_size = 4, stride = 2, padding = 1, bias = False),    
             # BatchNorm2d(num_features = ngf * 16), 
             # ReLU(inplace = True),
 
-            ConvTranspose2d(in_channels = ngf * 16, out_channels =  ngf * 8 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            ConvTranspose2d(in_channels = 1, out_channels =  ngf * 8 , kernel_size = 4, stride = 1, padding = 0, bias = False),
             BatchNorm2d(num_features = ngf * 8), 
             ReLU(inplace = True),
             
@@ -258,11 +258,11 @@ def train(imgs,device,epochs,gen_epochs,path):
     
             # generate batch of fake images using G
             # Step1: creating noise to be fed as input to G
-            G_input = attribute
-            noise = torch.randn(len(b[0]), 100, 1, 1, device = device)
+            
+            #noise = torch.randn(len(b[0]), 100, 1, 1, device = device)
             # Step 2: feed noise to G to create a fake img (this will be reused when updating G)
             #fake_img = netG(noise) 
-            fake_img = netG(G_input.to(device))
+            fake_img = netG(attribute.to(device))
     
             # compute D model output on fake images
             yhat = netD.cuda()(fake_img.detach()).view(-1) 
@@ -303,14 +303,15 @@ def train(imgs,device,epochs,gen_epochs,path):
             ####################################
     
             # during every epoch, print images at every 10th iteration.
-            if i% 10 == 0:
+            if i% 20 == 0:
                 # convert the fake images from (b_size, 3, 32, 32) to (b_size, 32, 32, 3) for plotting 
-                
+                img_plot = np.transpose(fake_img.detach().cpu(), (0,2,3,1)) # .detach().cpu() is imp for copying fake_img tensor to host memory first
+                plot_images(img_plot,index=epoch)
                 #print("********************")
                 print(" Epoch %d and iteration %d dloss= %f gloss= %f " % (epoch, i,loss_disc, loss_gen))
-        if epoch % 50 == 0:
-            img_plot = np.transpose(fake_img.detach().cpu(), (0,2,3,1)) # .detach().cpu() is imp for copying fake_img tensor to host memory first
-            plot_images(img_plot,index=epoch)
+        # if epoch % 50 == 0:
+        #     img_plot = np.transpose(fake_img.detach().cpu(), (0,2,3,1)) # .detach().cpu() is imp for copying fake_img tensor to host memory first
+        #     plot_images(img_plot,index=epoch)
 
 
 def main():
