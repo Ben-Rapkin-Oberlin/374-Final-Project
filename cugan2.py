@@ -89,31 +89,59 @@ class Generator(Module):
         super().__init__()
         nz = 100
         ngf = 64
+
         self.gen = Sequential(
-            #in_channels was 100
-            ConvTranspose2d(in_channels = 100, out_channels =  ngf * 32 , kernel_size = 4, stride = 1, padding = 0, bias = False),
-            BatchNorm2d(num_features = ngf * 32),
-            LeakyReLU(inplace = True),
-
-            ConvTranspose2d(in_channels = ngf * 32, out_channels =  ngf * 16 , kernel_size = 4, stride = 2, padding = 1, bias = False),    
-            BatchNorm2d(num_features = ngf * 16), 
-            LeakyReLU(inplace = True),
-
-            ConvTranspose2d(in_channels = ngf * 16, out_channels =  ngf * 8 , kernel_size = 4, stride = 2, padding = 1, bias = False),
-            BatchNorm2d(num_features = ngf * 8), 
-            LeakyReLU(inplace = True),
             
-            ConvTranspose2d(in_channels = ngf * 8, out_channels =  ngf * 4 , kernel_size = 4, stride = 2, padding = 1, bias = False),
-            BatchNorm2d(num_features =  ngf * 4),
+            ConvTranspose2d(in_channels = 6, out_channels =  ngf, kernel_size = 4, stride = 2, padding = 1, bias = False),
+            BatchNorm2d(num_features = ngf),
             LeakyReLU(inplace = True),
 
-            ConvTranspose2d(in_channels =  ngf * 4, out_channels =  ngf * 2 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            ConvTranspose2d(in_channels = ngf, out_channels =  ngf * 2 , kernel_size = 4, stride = 2, padding = 1, bias = False),
             BatchNorm2d(num_features = ngf * 2),
             LeakyReLU(inplace = True),
 
+            ConvTranspose2d(in_channels = ngf * 2, out_channels =  ngf * 4 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            BatchNorm2d(num_features = ngf * 4),
+            LeakyReLU(inplace = True),
+
+            ConvTranspose2d(in_channels = ngf * 4, out_channels =  ngf * 8 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            BatchNorm2d(num_features = ngf * 8),
+            LeakyReLU(inplace = True),
+            
+            ConvTranspose2d(in_channels = ngf * 8, out_channels =  ngf * 16 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            BatchNorm2d(num_features = ngf * 16),
+            LeakyReLU(inplace = True),
+
+            # ConvTranspose2d(in_channels = ngf * 16, out_channels =  ngf * 32 , kernel_size = 4, stride = 1, padding = 0, bias = False),
+            # BatchNorm2d(num_features = ngf * 32),
+            # LeakyReLU(inplace = True),
+
+            ConvTranspose2d(in_channels = ngf*16, out_channels = 1, kernel_size = 4, stride = 1, padding = 0, bias=False),
+            LeakyReLU(inplace = True),
+
+            ConvTranspose2d(in_channels = 1, out_channels =  ngf * 16 , kernel_size = 4, stride = 1, padding = 0, bias = False),    
+            BatchNorm2d(num_features = ngf * 16), 
+            ReLU(inplace = True),
+            
+            # ConvTranspose2d(in_channels = ngf *32, out_channels =  ngf * 16 , kernel_size = 4, stride = 2, padding = 1, bias = False),    
+            # BatchNorm2d(num_features = ngf * 16), 
+            # ReLU(inplace = True),
+
+            ConvTranspose2d(in_channels = ngf * 16, out_channels =  ngf * 8 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            BatchNorm2d(num_features = ngf * 8), 
+            ReLU(inplace = True),
+            
+            ConvTranspose2d(in_channels = ngf * 8, out_channels =  ngf * 4 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            BatchNorm2d(num_features =  ngf * 4),
+            ReLU(inplace = True),
+
+            ConvTranspose2d(in_channels =  ngf * 4, out_channels =  ngf * 2 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            BatchNorm2d(num_features = ngf * 2),
+            ReLU(inplace = True),
+
             ConvTranspose2d(in_channels =  ngf * 2, out_channels =  ngf , kernel_size = 4, stride = 2, padding = 1, bias = False),
             BatchNorm2d(num_features = ngf),
-            LeakyReLU(inplace = True),
+            ReLU(inplace = True),
 
             ConvTranspose2d(in_channels = ngf, out_channels = 3 , kernel_size = 4, stride = 2, padding = 1, bias = False),
             Tanh()
@@ -156,11 +184,11 @@ class Discriminator(Module):
             BatchNorm2d(w * 16),
             LeakyReLU(0.2, inplace=True),
 
-            Conv2d(in_channels = w*16, out_channels = w*32, kernel_size = 4, stride = 2, padding = 1, bias=False),
-            BatchNorm2d(w * 32),
-            LeakyReLU(0.2, inplace=True),
+            # Conv2d(in_channels = w*16, out_channels = w*32, kernel_size = 4, stride = 2, padding = 1, bias=False),
+            # BatchNorm2d(w * 32),
+            # LeakyReLU(0.2, inplace=True),
 
-            Conv2d(in_channels = w*32, out_channels = 1, kernel_size = 4, stride = 1, padding = 0, bias=False),
+            Conv2d(in_channels = w*16, out_channels = 1, kernel_size = 4, stride = 1, padding = 0, bias=False),
             # ouput from above layer is b_size, 1, 1, 1
             Sigmoid()
         )
@@ -230,11 +258,11 @@ def train(imgs,device,epochs,gen_epochs,path):
     
             # generate batch of fake images using G
             # Step1: creating noise to be fed as input to G
-            #G_input = attribute
+            G_input = attribute
             noise = torch.randn(len(b[0]), 100, 1, 1, device = device)
             # Step 2: feed noise to G to create a fake img (this will be reused when updating G)
-            fake_img = netG(noise) 
-            #fake_img = netG(G_input.to(device))
+            #fake_img = netG(noise) 
+            fake_img = netG(G_input.to(device))
     
             # compute D model output on fake images
             yhat = netD.cuda()(fake_img.detach()).view(-1) 
