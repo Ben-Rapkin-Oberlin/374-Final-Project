@@ -42,13 +42,13 @@ class MyDataset(torch.utils.data.Dataset):
 
         img1 = Image.open(self.path+'/'+path1)
         img1 = img1.convert('RGB')
-        img1 = img1.resize((256,256))
+        img1 = img1.resize((128,128))
         img1 = np.asarray(img1)/255
         img1 = np.transpose(np.float32(img1), (2,0,1))
 
         img2 = Image.open(self.path+'/'+path2)
         img2 = img2.convert('RGB')
-        img2 = img2.resize((256,256))
+        img2 = img2.resize((128,128))
         img2 = np.asarray(img2)/255
         img2 = np.transpose(np.float32(img2), (2,0,1))
         
@@ -58,7 +58,7 @@ class MyDataset(torch.utils.data.Dataset):
         
         img3 = Image.open(self.path+'/'+path3)
         img3 = img3.convert('RGB')
-        img3 = img3.resize((256,256))
+        img3 = img3.resize((128,128))
         img3 = np.asarray(img3)/255
         img3 = np.transpose(np.float32(img3), (2,0,1))
 
