@@ -7,14 +7,30 @@ import tensorflow_datasets as tfds
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-data = tfds.load('horses_or_humans',split=['train'], as_supervised=True)
-print(type(data))
-small=data.map(lambda x,y: (tf.image.resize(x, (256,256)), y))
-big=data.map(lambda x,y: (tf.image.resize(x, (512,512)), y))
+x_train= tfds.load('div2k',split='train', as_supervised=False)
+y_train= tfds.load('div2k',split='train', as_supervised=False)
+print(type(x_train))
+print(type(y_train))
 
 
-train=tfds.as_numpy(small)
+x_train=x_train.batch(10)
+y_train=y_train.batch(10)
+
+
+
+
+
+print(type(train_batches))
+print(train_batches.take(1))
+
+#train_batches=train_batches.map(lambda x: (tf.image.resize(x, (256,256)),3))
+#small=data.map(lambda x,y: (tf.image.resize(x, (256,256)), y))
+#big=data.map(lambda x,y: (tf.image.resize(x, (512,512)), y))
+
+
+#train=tfds.as_numpy(small)
 print("##############\n")
+exit()
 print(type(train))
 #print(train.shape)
 
@@ -28,7 +44,6 @@ model = tf.keras.models.Sequential([
     tf.keras.layers.Resizing(
     height=28,
     width=28),
-
 
     tf.keras.layers.Conv2D(64, (3,3), activation='relu', 
                            input_shape=(28, 28, 1)),
