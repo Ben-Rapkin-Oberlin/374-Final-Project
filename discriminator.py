@@ -34,11 +34,11 @@ class Discriminator(Module):
             BatchNorm2d(w * 16),
             LeakyReLU(0.2, inplace=True),
 
-            # Conv2d(in_channels = w*16, out_channels = w*32, kernel_size = 4, stride = 2, padding = 1, bias=False),
-            # BatchNorm2d(w * 32),
-            # LeakyReLU(0.2, inplace=True),
+            Conv2d(in_channels = w*16, out_channels = w*32, kernel_size = 4, stride = 2, padding = 1, bias=False),
+            BatchNorm2d(w * 32),
+            LeakyReLU(0.2, inplace=True),
 
-            Conv2d(in_channels = w*16, out_channels = 1, kernel_size = 4, stride = 1, padding = 0, bias=False),
+            Conv2d(in_channels = w*32, out_channels = 1, kernel_size = 4, stride = 1, padding = 0, bias=False),
             # ouput from above layer is b_size, 1, 1, 1
             Sigmoid()
         )

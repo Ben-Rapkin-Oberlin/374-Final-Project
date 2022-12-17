@@ -52,6 +52,10 @@ def train(device,epochs,path):
     opt_G = optim.Adam(netG.parameters(), lr = 3e-4, betas= (0.5, 0.999))#lr=0.0002
 
     loss = BCELoss()
+    G_loss_list = []
+    D_loss_list = []
+
+
 
     for epoch in range(epochs):
 
@@ -60,6 +64,7 @@ def train(device,epochs,path):
             #print(b.shape)
             label=b[1]
             attribute = b[0]
+            
             #b = torch.transpose(b,(2,0,1))
             # stack_img = torch.cat((b[0],b[2]),0)
             # ground_truth = b[1]
@@ -70,7 +75,7 @@ def train(device,epochs,path):
             yhat = netD(label.to(device)).view(-1)
             #yhat = netD(b.to(device)).view(-1) # view(-1) reshapes a 4-d tensor of shape (2,1,1,1) to 1-d tensor with 2 values only
             # specify target labels or true labels
-            target = torch.ones(len(b[0]), dtype=torch.float, device=device)
+            target = torch.ones(len(b[0]), dtype=torch.float, device=device)#len(b[0])
             # calculate loss
             
             loss_real = loss(yhat, target)
@@ -86,7 +91,7 @@ def train(device,epochs,path):
             # Step 2: feed noise to G to create a fake img (this will be reused when updating G)
             #fake_img = netG(noise) 
             fake_img = netG(attribute.to(device))
-            print(fake_img.shape)
+           
     
             # compute D model output on fake images
             yhat = netD.cuda()(fake_img.detach()).view(-1) 
@@ -132,22 +137,34 @@ def train(device,epochs,path):
                 
                 #print("********************")
                 print(" Epoch %d and iteration %d dloss= %f gloss= %f " % (epoch, i,loss_disc, loss_gen))
-        if (epoch) % 50 == 0:
+                lg = loss_gen.cpu()
+                ld = loss_disc.cpu()
+                G_loss_list.append(float(lg))
+                D_loss_list.append(float(ld))
+        if (epoch) % 30 == 0:
             
             img_plot = np.transpose(fake_img.detach().cpu(), (0,2,3,1)) # .detach().cpu() is imp for copying fake_img tensor to host memory first
             plot_images(img_plot,index=epoch)
-            
+            plt.clf()
             torch.save({
             'epoch': epoch,
-            'generator_state_dict': netG.state_dict(),
-            'discriminator_state_dict': netD.state_dict(),
-            'G_optimizer_state_dict': opt_G.state_dict(),
-            'D_optimizer_state_dict': opt_D.state_dict(),
-            'G_loss': loss_gen,
-            'D_loss': loss_disc
-            }, 'checkpoints/'+str(epoch))
+            'generator_state_dict': netG.state_dict()
+            # 'discriminator_state_dict': netD.state_dict(),
+            # 'G_optimizer_state_dict': opt_G.state_dict(),
+            # 'D_optimizer_state_dict': opt_D.state_dict(),
+            # 'G_loss': loss_gen,
+            # 'D_loss': loss_disc
+            }, 'checkpoints/'+str(epoch)+'.pth')
+
+            epoch_list = []
+            for i in range(len(G_loss_list)):
+                epoch_list.append(i+1)
+            plt.plot(epoch_list, G_loss_list, label = "generator loss")
+            plt.plot(epoch_list, D_loss_list, label = "discriminator loss")
+            plt.savefig("g_d_loss_at"+str(epoch)+".png")
         #     img_plot = np.transpose(fake_img.detach().cpu(), (0,2,3,1)) # .detach().cpu() is imp for copying fake_img tensor to host memory first
         #     plot_images(img_plot,index=epoch)
+    return G_loss_list, D_loss_list
 
 
 def main():
@@ -159,8 +176,10 @@ def main():
     #imgs = np.load('data_256x256.npz')
     
     #test_data(imgs)
-    epochs = 1000
+    epochs = 601
     path = 'images/low-res_mini'
-    train(device, epochs, path)
+    G_loss, D_loss = train(device, epochs, path)
+
+    
     
 main()

@@ -35,20 +35,21 @@ class MyDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         
+        img_size = 256
         #paths are stored in data_files, so use idx to get the path
         path1=self.data_files[idx][0]
-        path2=self.data_files[idx][1]
-        path3=self.data_files[idx][2]
+        path2=self.data_files[idx][2]
+        path3=self.data_files[idx][1]
 
         img1 = Image.open(self.path+'/'+path1)
         img1 = img1.convert('RGB')
-        img1 = img1.resize((128,128))
+        img1 = img1.resize((img_size,img_size))
         img1 = np.asarray(img1)/255
         img1 = np.transpose(np.float32(img1), (2,0,1))
 
         img2 = Image.open(self.path+'/'+path2)
         img2 = img2.convert('RGB')
-        img2 = img2.resize((128,128))
+        img2 = img2.resize((img_size,img_size))
         img2 = np.asarray(img2)/255
         img2 = np.transpose(np.float32(img2), (2,0,1))
         
@@ -58,7 +59,7 @@ class MyDataset(torch.utils.data.Dataset):
         
         img3 = Image.open(self.path+'/'+path3)
         img3 = img3.convert('RGB')
-        img3 = img3.resize((128,128))
+        img3 = img3.resize((img_size,img_size))
         img3 = np.asarray(img3)/255
         img3 = np.transpose(np.float32(img3), (2,0,1))
 

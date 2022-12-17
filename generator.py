@@ -21,30 +21,30 @@ class Generator(Module):
             BatchNorm2d(num_features = ngf * 4),
             LeakyReLU(inplace = True),
 
-            Conv2d(in_channels = ngf * 4, out_channels =  ngf * 8 , kernel_size = 4, stride = 2, padding = 1, bias = False),
+            Conv2d(in_channels = ngf * 4, out_channels =  ngf * 8, kernel_size = 4, stride = 2, padding = 1, bias = False),
             BatchNorm2d(num_features = ngf * 8),
             LeakyReLU(inplace = True),
             
-            Conv2d(in_channels = ngf * 8, out_channels =  1 , kernel_size = 4, stride = 1, padding = 0, bias = False),
-            #BatchNorm2d(num_features = ngf * 16),
+            Conv2d(in_channels = ngf * 8, out_channels =  ngf * 16, kernel_size = 4, stride = 2, padding = 1, bias = False),
+            BatchNorm2d(num_features = ngf * 16),
             LeakyReLU(inplace = True),
 
-            # Conv2d(in_channels = ngf * 16, out_channels =  1 , kernel_size = 4, stride = 1, padding = 0, bias = False),
+            Conv2d(in_channels = ngf * 16, out_channels =  1 , kernel_size = 4, stride = 1, padding = 0, bias = False),
             # #BatchNorm2d(num_features = ngf * 32),
-            # LeakyReLU(inplace = True),
+            LeakyReLU(inplace = True),
 
             # ConvTranspose2d(in_channels = ngf*16, out_channels = 1, kernel_size = 4, stride = 1, padding = 0, bias=False),
             # LeakyReLU(inplace = True),
 
-            # Conv2d(in_channels = 1, out_channels =  ngf * 16 , kernel_size = 4, stride = 1, padding = 0, bias = False),    
-            # BatchNorm2d(num_features = ngf * 16), 
-            # ReLU(inplace = True),
+            ConvTranspose2d(in_channels = 1, out_channels =  ngf * 16 , kernel_size = 4, stride = 1, padding = 0, bias = False),    
+            BatchNorm2d(num_features = ngf * 16), 
+            ReLU(inplace = True),
             
             # ConvTranspose2d(in_channels = ngf *32, out_channels =  ngf * 16 , kernel_size = 4, stride = 2, padding = 1, bias = False),    
             # BatchNorm2d(num_features = ngf * 16), 
             # ReLU(inplace = True),
 
-            ConvTranspose2d(in_channels = 1, out_channels =  ngf * 8 , kernel_size = 4, stride = 1, padding = 0, bias = False),
+            ConvTranspose2d(in_channels = ngf * 16, out_channels =  ngf * 8 , kernel_size = 4, stride = 2, padding = 1, bias = False),
             BatchNorm2d(num_features = ngf * 8), 
             ReLU(inplace = True),
             
