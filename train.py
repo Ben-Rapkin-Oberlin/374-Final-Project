@@ -108,10 +108,7 @@ def train(device,epochs,path):
     
             # Update weights of D
             opt_D.step()
-    
-            ##########################
-            #### Update Generator ####
-            ##########################
+
     
             # clear gradient
             opt_G.zero_grad()
@@ -156,12 +153,12 @@ def train(device,epochs,path):
             # 'D_loss': loss_disc
             }, 'checkpoints/'+str(epoch)+'.pth')
 
-            epoch_list = []
-            for i in range(len(G_loss_list)):
-                epoch_list.append(i+1)
-            plt.plot(epoch_list, G_loss_list, label = "generator loss")
-            plt.plot(epoch_list, D_loss_list, label = "discriminator loss")
-            plt.savefig("g_d_loss_at"+str(epoch)+".png")
+            # epoch_list = []
+            # for i in range(len(G_loss_list)):
+            #     epoch_list.append(i+1)
+            # plt.plot(epoch_list, G_loss_list, label = "generator loss")
+            # plt.plot(epoch_list, D_loss_list, label = "discriminator loss")
+            # plt.savefig("g_d_loss_at"+str(epoch)+".png")
         #     img_plot = np.transpose(fake_img.detach().cpu(), (0,2,3,1)) # .detach().cpu() is imp for copying fake_img tensor to host memory first
         #     plot_images(img_plot,index=epoch)
     return G_loss_list, D_loss_list
@@ -177,7 +174,7 @@ def main():
     
     #test_data(imgs)
     epochs = 601
-    path = 'images/low-res_mini'
+    path = 'images/protest'
     G_loss, D_loss = train(device, epochs, path)
 
     
