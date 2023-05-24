@@ -6,4 +6,4 @@ This is a repository dedicated to CSCI 374 at Oberlin College. The goal is to us
 FFMPEG, Python-FFMPEG, Opencv-Python
 
 ## Authors
-Peter Cao, Nolan Chen, and Ben Rapkin
+Peter Cao, Nolan Chen, and Ben Rapkin (who is also 1password1)
